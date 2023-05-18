@@ -15,16 +15,14 @@ const app = express()
 app.use(cors())
 
 // Convertir body a objeto js
-app.use(express.json())
+app.use(express.json()) //Recibir datos con content-type app/json
+app.use(express.urlencoded({ extended: true })) //Middleware que permite recibir datos con content-type x-www-form-urlencoded
 
-// Crear rutas
-app.get("/probando", (req, res) => {
-    return res.status(200).json( { status: 200, name: "probando" } )
-})
+//Rutas
+const routes_article = require('./routes/article')
 
-app.get("/", (req, res) => {
-    return res.status(200).json( { status: 200, name: "Home" } )
-})
+//Se cargan las rutas
+app.use("/api", routes_article)
 
 
 // Crear servidor y escuchar peticiones http

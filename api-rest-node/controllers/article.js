@@ -47,20 +47,82 @@ const create = (req, res) => {
 
 const list = async ( req, res) => {
 
-    let articles = await Article.find({})
-    let status = articles ? 200 : 404
+    let limit = req.params.last
+    let cant = 0
 
+    let articles = !limit ? await Article.find({}).sort({ date: -1 }) : await Article.find({}).sort({ date: -1 }).limit( limit )
+
+    cant = articles.length
+
+    let status = articles ? 200 : 404
 
     return res.status(status).json({
         status,
+        cant,
         articles
     })
 }
 
+const one = async (req, res) => {
+
+    const articleId = req.params.one
+    let article = null
+    let state = 200
+
+    try {
+        article = await Article.findById(articleId)
+    } catch (error) {
+        state = 500
+    }
+
+    res.status(state).json({
+        article
+    })
+
+}
+
+const deleteArticle = async ( req, res ) => {
+
+    const articleId = req.params.articleId
+    let article = null
+    let status = 200
+
+    try {
+        article = await Article.findOneAndDelete( { _id: articleId } )
+    } catch (error) {
+        status = 500
+    }
+
+    return res.status(status).json({
+        article
+    })
+}
+
+
+const edit = async ( req, res ) => {
+    const status = 200
+    let article = null
+    const articleId = req.params.articleId
+    const parameters = req.body
+
+    //Con el parametro { new: true } retorna el objeto que modifico no el anterior
+    try {
+        article = await Article.findOneAndUpdate( { _id: articleId },  parameters, { new: true })
+    } catch (error) {
+        status = 500
+    }
+
+    return res.status(status).json({
+        article
+    })
+}
 
 module.exports = {
     test,
     course,
     create,
-    list
+    list,
+    one,
+    deleteArticle,
+    edit
 }

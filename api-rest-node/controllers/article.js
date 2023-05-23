@@ -1,5 +1,6 @@
-const validator = require('validator')
 const Article = require('../models/Article')
+const fs = require("fs")
+const { validatorArticle } = require('../helpers/validateArticle')
 
 const test = ( req, res ) => {
     return res.status(200).json({
@@ -14,7 +15,8 @@ const course = (req, res) => {
     ])
 }
 
-const create = (req, res) => {
+
+const create = async (req, res) => {
     let state = 200
     let message = 'Acción de guardar'
     let article = null
@@ -23,10 +25,7 @@ const create = (req, res) => {
     let parameters = req.body
 
     try {
-        if ( validator.isEmpty(parameters.title) || validator.isEmpty(parameters.content) || !validator.isLength(parameters.title, { min: 0, max: 40 }) ) {
-            throw new Error("El titulo y el contenido es obligatorio")
-        }
-
+        await validatorArticle(parameters)
         //Guardar el objeto en la base de datos
         article = new Article(parameters)
         article.save()
@@ -117,6 +116,45 @@ const edit = async ( req, res ) => {
     })
 }
 
+const updateImage = async( req, res) => {
+    let status = 500
+    let file = null
+    let fileSplit = null
+    let extension = null
+    let message = 'Imagen guardada con exito'
+
+    try {
+        if (req.file) {
+            file = req.file.originalname
+            fileSplit = file.split(".")
+            extension = fileSplit[1]
+
+            if( extension != 'png' && extension != 'jpg' && extension != 'gif' && extension != 'jpeg' ){
+                fs.unlink(req.file.path, (error) => {
+                    if (error) {
+                      console.error('Ocurrió un error al eliminar el archivo:', error)
+                    }
+                })
+                status = 200
+                message = "Formato invalido"
+            }else{
+                status = 200
+            }
+        }else{
+            message = 'La imagen es obligatoria'
+        }
+    } catch (error) {
+        status = 500
+        message = error
+    }
+
+    return res.status(status).json({
+        status,
+        message
+    })
+
+}
+
 module.exports = {
     test,
     course,
@@ -124,5 +162,6 @@ module.exports = {
     list,
     one,
     deleteArticle,
-    edit
+    edit,
+    updateImage
 }

@@ -1,5 +1,6 @@
 const Article = require('../models/Article')
 const fs = require("fs")
+const path = require("path")
 const { validatorArticle } = require('../helpers/validateArticle')
 
 const test = ( req, res ) => {
@@ -122,8 +123,13 @@ const updateImage = async( req, res) => {
     let fileSplit = null
     let extension = null
     let message = 'Imagen guardada con exito'
+    let article = null
 
     try {
+
+        const articleId = req.params.articleId
+        article = await Article.findOneAndUpdate( { _id: articleId },  { image: req.file.filename }, { new: true })
+
         if (req.file) {
             file = req.file.originalname
             fileSplit = file.split(".")
@@ -155,6 +161,44 @@ const updateImage = async( req, res) => {
 
 }
 
+const imageLoad = (req, res) => {
+    let file = req.params.file
+    let status = 200
+    let dirImage = "./images/articles/" + file
+    let message = ""
+    let image = null
+
+
+
+    fs.stat( dirImage, (error, exists) => {
+        if(exists){
+            return res.sendFile(path.resolve(dirImage))
+        }else{
+            return res.status(500).json({
+                error
+            })
+        }
+    })
+}
+
+const search = async ( req, res) => {
+
+    // -1 Ordenamiento descendente
+
+    let searchData = req.params.data
+
+    //Consulta con una expresión regular si el parametro de req.params.data encuentra una coincidencia en el titulo o contenido
+    let responseSearch = await Article.find({ "$or":[
+        { title: { "$regex": searchData, "$options": "i" } },
+        { content: { "$regex": searchData, "$options": "i" } }
+    ]})
+    .sort({ fecha: -1 })
+
+    res.status(200).json({
+        responseSearch
+    })
+}
+
 module.exports = {
     test,
     course,
@@ -163,5 +207,7 @@ module.exports = {
     one,
     deleteArticle,
     edit,
-    updateImage
+    updateImage,
+    imageLoad,
+    search
 }

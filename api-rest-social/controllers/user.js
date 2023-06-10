@@ -5,6 +5,14 @@ const testUser = async (req, res) => {
     })
 }
 
+//Registro de usuarios
+const register = (req, res) => {
+    return res.status(200).json({
+        message: "Acción de registro de usuarios"
+    })
+}
+
 module.exports = {
-    testUser
+    testUser,
+    register
 }

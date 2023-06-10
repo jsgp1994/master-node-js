@@ -6,5 +6,5 @@ const testPublication = async (req, res) => {
 }
 
 module.exports = {
-    testUser
+    testPublication
 }
